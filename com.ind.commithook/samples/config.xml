@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hook:CommitHookConfig xmlns:hook="http://code.google.com/p/kickassalternate" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://code.google.com/p/kickassalternate ../xsd/config.xsd ">
+  <TempDirectory>d:\eclipse\temp</TempDirectory>
+  <hook:Check className="com.ind.commithook.checkers.CommentChecker">
+    <Parameters>
+      <hook:Parameter name="minLenght" value="30"/>
+    </Parameters>
+    <Include>
+      <hook:RegexpPattern value=""/>
+    </Include>
+    <Exclude>
+      <hook:RegexpPattern value=""/>
+    </Exclude>
+  </hook:Check>
+  <hook:Check className="com.ind.commithook.checkers.CheckStyle">
+    <Parameters>
+      <hook:Parameter name="minLenght" value="30"/>
+    </Parameters>
+    <Include>
+      <hook:RegexpPattern value=""/>
+    </Include>
+    <Exclude>
+      <hook:RegexpPattern value=""/>
+    </Exclude>
+  </hook:Check>
+</hook:CommitHookConfig>
