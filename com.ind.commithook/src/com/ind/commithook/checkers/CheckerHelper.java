@@ -3,13 +3,13 @@ package com.ind.commithook.checkers;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ind.commithook.Checker;
+import com.ind.commithook.CheckerException;
 import com.ind.commithook.Hook;
 
 /**
  * Simple helper class to enable easier checker implementation
  * 
- * @author Lipták Gábor
+ * @author Liptï¿½k Gï¿½bor
  */
 public abstract class CheckerHelper implements Checker
 {
@@ -17,13 +17,13 @@ public abstract class CheckerHelper implements Checker
 	protected Hook hookInstance;
 
 	@Override
-	public void addParameter(String name, String value)
+	public void addParameter(final String name, final String value) throws CheckerException
 	{
 		parameters.put(name, value);
 	}
 
 	@Override
-	public void setHook(Hook hook)
+	public void setHook(final Hook hook)
 	{
 		this.hookInstance = hook;
 	}
