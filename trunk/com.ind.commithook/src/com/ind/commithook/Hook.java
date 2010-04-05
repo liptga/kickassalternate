@@ -5,18 +5,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNNodeKind;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
@@ -24,153 +27,258 @@ import org.tmatesoft.svn.core.wc.admin.ISVNChangeEntryHandler;
 import org.tmatesoft.svn.core.wc.admin.SVNChangeEntry;
 import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
 
-import com.puppycrawl.tools.checkstyle.Checker;
-import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
-import com.puppycrawl.tools.checkstyle.DefaultLogger;
-import com.puppycrawl.tools.checkstyle.PropertiesExpander;
-import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
-import com.puppycrawl.tools.checkstyle.api.Configuration;
+import com.ind.commithook.Check.Exclude;
+import com.ind.commithook.Check.Include;
+import com.ind.commithook.checkers.Checker;
 
 public class Hook
 {
-	private static final int COMMENT_MIN_LENGTH = 4;
-	private static final String TEMP_DIR = "d:\\repo\\temp";
-	private static Checker checker = null;
-	
 	private static String TRANSACTION_ID_ARGUMENT = "-tr";
 	private static String REPOSITORY_ROOT_ARGUMENT = "-repo";
-	private static String TEMP_DIR_ARGUMENT = "-tempdir";
-	private static String CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT = "-fileconfig";
-	private static String CONFIG_FILE_IN_REPOSITORY_ARGUMENT = "-repoconfig";
-	private static String[] HELP_ARGUMENTS = new String[] { "-help", "/?" , "--help", "-h", "-?" };
-	private static String HELP = 
-		"Commit Hook Framework\r\n\r\n" + //
-		"Usage sample:\r\n" + //
-		"java -jar commithook.jar com.ind.commithook.Hook " + TRANSACTION_ID_ARGUMENT + " 14-i " + REPOSITORY_ROOT_ARGUMENT + " d:\\repository " + CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT + " d:\\hookconfig.xml\r\n\r\n" + //
-		"Arguments:\r\n" + //
-		"\t" + TRANSACTION_ID_ARGUMENT + " : (MANDATORY) transaction identifier. Second argument of hook script.\r\n" + //
-		"\t" + REPOSITORY_ROOT_ARGUMENT + " : (MANDATORY) root of repository in server file system. First argument of hook script.\r\n" + //
-		"\t" + TEMP_DIR_ARGUMENT + " : must be given if config file do not contain \"TempDirectory\" element. Into this directory will be the changes and needed files fetched.\r\n" + //
-		"\tExactly on of the followings must be given:\r\n" + //
-		"\t" + CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT + " : if config file comes from the file system you define it here\r\n" + //
-		"\t" + CONFIG_FILE_IN_REPOSITORY_ARGUMENT + " : if config file comes from the SVN repository itself you define it here\r\n";
-	private String transactionId;
-	private String repositoryRoot;
-	private File repositoryRootFile;
+	private static String TEMP_DIR_ARGUMENT = "-temp";
+	private static String CONFIG_FILE_ARGUMENT = "-config";
+	private static String[] HELP_ARGUMENTS = new String[] { "-help", "/?", "--help", "-h", "-?" };
+	private static String HELP = "Commit Hook Framework\r\n\r\n" + //
+			"Usage sample:\r\n" + //
+			"java -jar commithook.jar com.ind.commithook.Hook " + TRANSACTION_ID_ARGUMENT + " 14-i " + REPOSITORY_ROOT_ARGUMENT + " d:\\repository " + CONFIG_FILE_ARGUMENT + " d:\\hookconfig.xml\r\n\r\n" + //
+			"Arguments (all mandatory):\r\n" + //
+			"\t" + TRANSACTION_ID_ARGUMENT + " : transaction identifier. Second argument of hook script.\r\n" + //
+			"\t" + REPOSITORY_ROOT_ARGUMENT + " : root of repository in server file system. First argument of hook script.\r\n" + //
+			"\t" + TEMP_DIR_ARGUMENT + " : into this directory will be the changes and needed files fetched.\r\n" + //
+			"\t" + CONFIG_FILE_ARGUMENT + " : config file path. If not found in file system, fetched as relative path from SVN\r\n"; //
+	private final String transactionId;
+	private final File repositoryRootFile;
 	private SVNLookClient svnClient;
-	private CommitHookConfig config;
+	private final String tempDir;
+	private final String configFile;
+	private final Map<String, Pattern> patternCache = new HashMap<String, Pattern>();
 
-	public Hook( String transactionId, String repositoryRoot, String configFile, boolean configIsInFileSystem )
+	public Hook(final String transactionId, final String repositoryRoot, final String configFile, final String tempDir)
 	{
 		this.transactionId = transactionId;
-		this.repositoryRoot = repositoryRoot;
-		this.repositoryRootFile = new File( repositoryRoot );
-		String configFilePath = configFile;
-		final SVNClientManager clientManager = SVNClientManager.newInstance();
-		final ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
-		svnClient = new SVNLookClient(clientManager, options);
-		if ( !configIsInFileSystem )
-		{
-			
-		}
+		this.repositoryRootFile = new File(repositoryRoot);
+		this.tempDir = tempDir;
+		this.configFile = configFile;
 	}
 
-	public static void main(final String[] args) throws InterruptedException,
-			SVNException, CheckstyleException, IOException, JAXBException
+	public SVNLookClient getSvnClient()
 	{
-	    JAXBContext jc = JAXBContext.newInstance( CommitHookConfig.class.getPackage().getName() );
-	    Unmarshaller u = jc.createUnmarshaller();
-	    CommitHookConfig config = (CommitHookConfig)u.unmarshal( new FileInputStream( "C:\\Documents and Settings\\Lipták Gábor\\commithook\\com.ind.commithook\\samples\\config.xml" ) );
-		
-		Map<String, String> arguments = new HashMap<String, String>();
+		return svnClient;
+	}
+
+	public String getTransactionId()
+	{
+		return transactionId;
+	}
+
+	public File getRepositoryRootFile()
+	{
+		return repositoryRootFile;
+	}
+
+	public byte[] getFileFromSVN(final String path) throws SVNException
+	{
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		svnClient.doCat(repositoryRootFile, path, transactionId, bos);
+		return bos.toByteArray();
+	}
+
+	public String relativePath2TempPath(final String relativePath)
+	{
+		final String filePathWithCorrectedSeparators = relativePath.replace('/', File.separatorChar);
+		return getTempDirOfTransaction() + filePathWithCorrectedSeparators;
+	}
+
+	public File saveFileFromSVNToTemp(final String path) throws SVNException, IOException
+	{
+		final String targetFileName = relativePath2TempPath(path);
+		final String targetDir = targetFileName.substring(0, targetFileName.lastIndexOf(File.separatorChar));
+		if (targetDir.length() > 0)
+			new File(targetDir).mkdirs();
+		final File targetFile = new File(targetFileName);
+		final FileOutputStream fos = new FileOutputStream(targetFile);
+		fos.write(getFileFromSVN(path));
+		fos.close();
+		return targetFile;
+	}
+
+	private Pattern getPattern(final String pattern)
+	{
+		Pattern result = patternCache.get(pattern);
+		if (result == null)
+		{
+			result = Pattern.compile(pattern);
+			patternCache.put(pattern, result);
+		}
+		return result;
+	}
+
+	public String getTempDirOfTransaction()
+	{
+		return tempDir + File.separator + transactionId;
+	}
+
+	public static void main(final String[] args) throws CheckerException, CommitHookException
+	{
+		final Map<String, String> arguments = new HashMap<String, String>();
 		String key = null;
 		for (int i = 0; i < args.length; i++)
 		{
-			if ( key == null )
+			if (key == null)
 			{
-				key = args[ 0 ];
+				key = args[i];
 			}
 			else
 			{
-				arguments.put(key, args[i] );
+				arguments.put(key, args[i]);
 				key = null;
 			}
 		}
 		boolean problem = false;
-		List<String> argumentList = Arrays.asList( args );
+		final List<String> argumentList = Arrays.asList(args);
 		for (int i = 0; i < HELP_ARGUMENTS.length; i++)
 		{
-			if ( argumentList.contains(HELP_ARGUMENTS[i] ) )
+			if (argumentList.contains(HELP_ARGUMENTS[i]))
 			{
-				System.out.println( HELP );
-				System.exit( 0 );
+				System.out.println(HELP);
+				System.exit(0);
 			}
 		}
-		if ( !arguments.containsKey( TRANSACTION_ID_ARGUMENT ) )
+		if (!arguments.containsKey(TRANSACTION_ID_ARGUMENT))
 		{
-			System.err.println( "Argument " + TRANSACTION_ID_ARGUMENT + " must be set. This will be the second argument of hook script. Pass it to this program!" );
+			System.err.println("Argument " + TRANSACTION_ID_ARGUMENT + " must be set. This will be the second argument of hook script. Pass it to this program!");
 			problem = true;
 		}
-		if ( !arguments.containsKey( REPOSITORY_ROOT_ARGUMENT ) )
+		if (!arguments.containsKey(REPOSITORY_ROOT_ARGUMENT))
 		{
-			System.err.println( "Argument " + REPOSITORY_ROOT_ARGUMENT + " must be set. This will be the first argument of hook script. Pass it to this program!" );
+			System.err.println("Argument " + REPOSITORY_ROOT_ARGUMENT + " must be set. This will be the first argument of hook script. Pass it to this program!");
 			problem = true;
 		}
-		//XOR
-		if ( ! ( arguments.containsKey( CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT ) ^ arguments.containsKey( CONFIG_FILE_IN_REPOSITORY_ARGUMENT ) ) )
+		if (!arguments.containsKey(TEMP_DIR_ARGUMENT))
 		{
-			System.err.println( "Exactly one of " + CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT + " or " + CONFIG_FILE_IN_REPOSITORY_ARGUMENT + " must be given!" );
+			System.err.println("Argument " + TEMP_DIR_ARGUMENT + " must be set!");
 			problem = true;
 		}
-		if ( problem )
+		if (!arguments.containsKey(CONFIG_FILE_ARGUMENT))
 		{
-			System.err.println( "\r\n" + HELP );
+			System.err.println("Argument " + CONFIG_FILE_ARGUMENT + " must be set!");
+			problem = true;
+		}
+		if (problem)
+		{
+			System.err.println("\r\n" + HELP);
 			System.exit(1);
 		}
-		
-		Hook hook = new Hook( arguments.get(TRANSACTION_ID_ARGUMENT), arguments.get(REPOSITORY_ROOT_ARGUMENT), arguments.containsKey(CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT) ? arguments.get(CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT) : arguments.get(CONFIG_FILE_IN_REPOSITORY_ARGUMENT), arguments.containsKey(CONFIG_FILE_IN_FILE_SYSTEM_ARGUMENT));
 
-		String result = hook.process();
-		
-		if ( result != null && result.length()>0)
+		final Hook hook = new Hook(arguments.get(TRANSACTION_ID_ARGUMENT), arguments.get(REPOSITORY_ROOT_ARGUMENT), arguments.get(CONFIG_FILE_ARGUMENT), arguments.get(TEMP_DIR_ARGUMENT));
+
+		final String result = hook.process();
+
+		if (result != null && result.length() > 0)
 		{
 			System.err.print(result);
 			System.exit(1);
 		}
-		
-//		final String commitComment = look.doGetLog(repoRoot, transactionId);
-//		if (commitComment.length() < COMMENT_MIN_LENGTH)
-//		{
-//			System.err.println("Commit comment length cannot be shorter than "
-//					+ COMMENT_MIN_LENGTH + "! Your comment was like: \""
-//					+ commitComment + "\".");
-//		}
-//
-//		final Configuration checkstyleConfig = ConfigurationLoader
-//				.loadConfiguration(
-//						"d:\\repo\\svnchecker\\svnchecker-0.3\\checkstyle.xml",
-//						new PropertiesExpander(System.getProperties()));
-//
-//		checker = new Checker();
-//		final ClassLoader moduleClassLoader = Checker.class.getClassLoader();
-//		checker.setModuleClassLoader(moduleClassLoader);
-//		checker.configure(checkstyleConfig);
-//		checker.addListener(new DefaultLogger(System.err, false));
-//		final ChangeHandler changeHandler = new ChangeHandler();
-//		look.doGetChanged(repoRoot, transactionId, changeHandler, true);
-//		checker.process(saveFiles(changeHandler.getFiles(), look, repoRoot,
-//				transactionId));
-//		deleteDirectory(new File(TEMP_DIR + File.separator + transactionId));
-//		System.exit(1);
-
 	}
 
-	private String process()
+	private String process() throws CheckerException, CommitHookException
 	{
-		return null;
+		final StringBuilder result = new StringBuilder();
+		try
+		{
+			final SVNClientManager clientManager = SVNClientManager.newInstance();
+			final ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
+			svnClient = new SVNLookClient(clientManager, options);
+
+			final JAXBContext jc = JAXBContext.newInstance(CommitHookConfig.class.getPackage().getName());
+			final Unmarshaller u = jc.createUnmarshaller();
+			final CommitHookConfig config = (CommitHookConfig) u.unmarshal(getFileStreamFromFileSystemOrRepository(configFile));
+			final List<String> changedFilesPath = getChangedFiles();
+			saveChangedFilesToTemp(getChangedFiles());
+			for (final Check check : config.getCheck())
+			{
+				final Class checkerClass = Class.forName(check.getClassName());
+				final Checker checker = (Checker) checkerClass.newInstance();
+				checker.setHook(this);
+				for (final Parameter parameter : check.getParameters().getParameter())
+				{
+					checker.addParameter(parameter.getName(), parameter.getValue());
+				}
+				final Object checkResult = checker.process(renderFileList(changedFilesPath, check.getExclude(), check.getInclude()), new File(tempDir));
+				if (checkResult != null)
+				{
+					result.append("Checker \"");
+					result.append(check.getLegend());
+					result.append("\" returned errors. See its output:\r\n");
+					result.append(checkResult);
+					result.append("\r\n");
+				}
+			}
+			return result.toString();
+		}
+		catch (final CheckerException ce)
+		{
+			throw ce;
+		}
+		catch (final Exception e)
+		{
+			throw new CommitHookException(e);
+		}
+		finally
+		{
+			deleteDirectory(new File(getTempDirOfTransaction()));
+		}
 	}
 
-	static private boolean deleteDirectory(final File path)
+	private boolean matchesOneRegexpListItem(final List<RegexpPattern> regexpList, final String stringToMatch)
+	{
+		for (final RegexpPattern patternConfigItem : regexpList)
+		{
+			if (getPattern(patternConfigItem.getValue()).matcher(stringToMatch).matches())
+				return true;
+		}
+		return false;
+	}
+
+	private Set<File> renderFileList(final List<String> changedFiles, final Exclude excludes, final Include includes)
+	{
+		final Set<File> result = new HashSet<File>();
+		for (final String changedFilePath : changedFiles)
+		{
+			//comments are to retain formatting i like
+			if (//
+			(//
+					includes == null || // 
+					matchesOneRegexpListItem(includes.getRegexpPattern(), changedFilePath)// 
+					)//
+					&& //
+					(//
+					excludes == null || //
+					!matchesOneRegexpListItem(excludes.getRegexpPattern(), changedFilePath)// 
+					)//
+			)//
+				result.add(new File(relativePath2TempPath(changedFilePath)));
+		}
+		return result;
+	}
+
+	public InputStream getFileStreamFromFileSystemOrRepository(final String path) throws SVNException, IOException
+	{
+		return new FileInputStream(getFileFromFileSystemOrRepository(path));
+	}
+
+	public File getFileFromFileSystemOrRepository(final String path) throws SVNException, IOException
+	{
+		final File file = new File(path);
+		if (file.exists() && file.isFile())
+			return new File(path);
+		else
+		{
+			return saveFileFromSVNToTemp(path);
+		}
+	}
+
+	public boolean deleteDirectory(final File path)
 	{
 		if (path.exists())
 		{
@@ -180,7 +288,8 @@ public class Hook
 				if (files[i].isDirectory())
 				{
 					deleteDirectory(files[i]);
-				} else
+				}
+				else
 				{
 					files[i].delete();
 				}
@@ -189,36 +298,27 @@ public class Hook
 		return (path.delete());
 	}
 
-	private static List<File> saveFiles(final List<String> files,
-			final SVNLookClient look, final File repoRoot,
-			final String transaction) throws SVNException, IOException
+	private List<String> getChangedFiles() throws SVNException
+	{
+		final ChangeHandler changeHandler = new ChangeHandler();
+		svnClient.doGetChanged(repositoryRootFile, transactionId, changeHandler, true);
+		return changeHandler.getFiles();
+	}
+
+	private List<File> saveChangedFilesToTemp(final List<String> changedFiles) throws SVNException, IOException
 	{
 		final List<File> savedFiles = new ArrayList<File>();
-		for (int i = 0; i < files.size(); i++)
+		for (int i = 0; i < changedFiles.size(); i++)
 		{
-			final String filePath = files.get(i);
-			final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			look.doCat(repoRoot, filePath, transaction, bos);
-			final String directoryOfTransaction = TEMP_DIR + File.separator
-					+ transaction;
-			final String filePathWithCorrectedSeparators = filePath.replace(
-					'/', File.separatorChar);
-			final String targetFileName = directoryOfTransaction
-					+ filePathWithCorrectedSeparators;
-			final String targetDir = targetFileName.substring(0, targetFileName
-					.lastIndexOf(File.separatorChar));
-			new File(targetDir).mkdirs();
-			final FileOutputStream fos = new FileOutputStream(targetFileName);
-			fos.write(bos.toByteArray());
-			fos.close();
-			savedFiles.add(new File(targetFileName));
+			final String filePath = changedFiles.get(i);
+			savedFiles.add(saveFileFromSVNToTemp(filePath));
 		}
 		return savedFiles;
 	}
 
 	/**
 	 * Inner class for change traversing ala SVNKit.
-	 * @author Lipták Gábor
+	 * @author Liptï¿½k Gï¿½bor
 	 */
 	private static class ChangeHandler implements ISVNChangeEntryHandler
 	{
@@ -232,11 +332,8 @@ public class Hook
 		@Override
 		public void handleEntry(final SVNChangeEntry entry) throws SVNException
 		{
-			final String fileName = entry.getPath();
-			if (fileName.endsWith(".java"))
-			{
-				files.add(fileName);
-			}
+			if (entry.getKind().equals(SVNNodeKind.FILE))
+				files.add(entry.getPath());
 		}
 	}
 }

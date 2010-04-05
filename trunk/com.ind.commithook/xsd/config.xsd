@@ -3,7 +3,6 @@
 	<xsd:element name="CommitHookConfig">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="TempDirectory" minOccurs="0" type="xsd:string"/>
 				<xsd:element ref="Check" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:sequence>
 		</xsd:complexType>
@@ -34,20 +33,21 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
-			<xsd:attribute name="className"/>
+			<xsd:attribute name="className" type="xsd:string" use="required"/>
+			<xsd:attribute name="legend" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 	
 	<xsd:element name="RegexpPattern">
 		<xsd:complexType>
-			<xsd:attribute name="value" type="xsd:string"/>
+			<xsd:attribute name="value" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="Parameter">
 		<xsd:complexType>
-			<xsd:attribute name="name" type="xsd:string"/>
-			<xsd:attribute name="value" type="xsd:string"/>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="value" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>	
 </xsd:schema>
