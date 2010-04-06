@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hook:CommitHookConfig xmlns:hook="http://code.google.com/p/kickassalternate" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://code.google.com/p/kickassalternate ../xsd/config.xsd ">
-  <hook:Check className="com.ind.commithook.checkers.CommentChecker" legend="Comments Checker">
+<CommitHookConfig xmlns="http://code.google.com/p/kickassalternate" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://code.google.com/p/kickassalternate ../xsd/config.xsd ">
+  <Check className="com.ind.commithook.checkers.CommentChecker" legend="Comments Checker">
     <Parameters>
-      <hook:Parameter name="minLength" value="20"/>
-      <hook:Parameter name="pattern" value="JIRABUGID-\d*:.*"/>
+      <Parameter name="minLength" value="20"/>
+      <Parameter name="pattern" value="JIRABUGID-\d*:.*"/>
     </Parameters>
     <Include>
-      <hook:RegexpPattern value=".*\.java"/>
+      <RegexpPattern value=".*\.java"/>
     </Include>
     <Exclude>
-      <hook:RegexpPattern value=".*/test/.*\.java"/>
+      <RegexpPattern value=".*/test/.*\.java"/>
     </Exclude>
-  </hook:Check>
-  <hook:Check className="com.ind.commithook.checkers.CheckStyle" legend="Java CheckStyle General Checker">
+  </Check>
+  <Check className="com.ind.commithook.checkers.CheckStyle" legend="Java CheckStyle General Checker">
     <Parameters>
-      <hook:Parameter name="configFile" value="D:\Eclipse\commithook\com.ind.commithook\samples\checkstyle.xml"/>
+      <Parameter name="configFile" value="D:\Eclipse\commithook\com.ind.commithook\samples\checkstyle.xml"/>
     </Parameters>
-  </hook:Check>
-</hook:CommitHookConfig>
+  </Check>
+</CommitHookConfig>
