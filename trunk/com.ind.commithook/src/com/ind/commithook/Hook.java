@@ -40,7 +40,7 @@ public class Hook
 	private static String[] HELP_ARGUMENTS = new String[] { "-help", "/?", "--help", "-h", "-?" };
 	private static String HELP = "Commit Hook Framework\r\n\r\n" + //
 			"Usage sample:\r\n" + //
-			"java -jar commithook.jar com.ind.commithook.Hook " + TRANSACTION_ID_ARGUMENT + " 14-i " + REPOSITORY_ROOT_ARGUMENT + " d:\\repository " + CONFIG_FILE_ARGUMENT + " d:\\hookconfig.xml\r\n\r\n" + //
+			"java -jar commithook.jar com.ind.commithook.Hook " + TRANSACTION_ID_ARGUMENT + " %2 " + REPOSITORY_ROOT_ARGUMENT + " %1 " + CONFIG_FILE_ARGUMENT + " d:\\hookconfig.xml\r\n\r\n" + //
 			"Arguments (all mandatory):\r\n" + //
 			"\t" + TRANSACTION_ID_ARGUMENT + " : transaction identifier. Second argument of hook script.\r\n" + //
 			"\t" + REPOSITORY_ROOT_ARGUMENT + " : root of repository in server file system. First argument of hook script.\r\n" + //
@@ -200,10 +200,11 @@ public class Hook
 				final Class checkerClass = Class.forName(check.getClassName());
 				final Checker checker = (Checker) checkerClass.newInstance();
 				checker.setHook(this);
-				for (final Parameter parameter : check.getParameters().getParameter())
-				{
-					checker.addParameter(parameter.getName(), parameter.getValue());
-				}
+				if ( check.getParameters() != null)
+					for (final Parameter parameter : check.getParameters().getParameter())
+					{
+						checker.addParameter(parameter.getName(), parameter.getValue());
+					}
 				final Object checkResult = checker.process(renderFileList(changedFilesPath, check.getExclude(), check.getInclude()), new File(tempDir));
 				if (checkResult != null)
 				{
