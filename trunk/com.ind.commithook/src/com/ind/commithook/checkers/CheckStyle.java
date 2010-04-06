@@ -14,14 +14,14 @@ import com.puppycrawl.tools.checkstyle.api.Configuration;
 
 public class CheckStyle extends ParameterResolverCheckerHelper
 {
-	private String configFile;
+	private File configFile;
 
-	public String getConfigFile()
+	public File getConfigFile()
 	{
 		return configFile;
 	}
 
-	public void setConfigFile(final String configFile)
+	public void setConfigFile(final File configFile)
 	{
 		this.configFile = configFile;
 	}
@@ -31,7 +31,7 @@ public class CheckStyle extends ParameterResolverCheckerHelper
 	{
 		try
 		{
-			final Configuration checkstyleConfig = ConfigurationLoader.loadConfiguration(hookInstance.getFileFromFileSystemOrRepository(getConfigFile()).getCanonicalPath(), new PropertiesExpander(System.getProperties()));
+			final Configuration checkstyleConfig = ConfigurationLoader.loadConfiguration(configFile.getCanonicalPath(), new PropertiesExpander(System.getProperties()));
 			final com.puppycrawl.tools.checkstyle.Checker checker = new com.puppycrawl.tools.checkstyle.Checker();
 			final ClassLoader moduleClassLoader = Checker.class.getClassLoader();
 			checker.setModuleClassLoader(moduleClassLoader);
