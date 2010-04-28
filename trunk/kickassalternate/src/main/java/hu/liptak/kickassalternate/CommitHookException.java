@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.ind.commithook;
+package hu.liptak.kickassalternate;
 
 /**
  * To be used by general framework services

@@ -1,13 +1,13 @@
 /**
  * 
  */
-package com.ind.commithook.checkers;
+package hu.liptak.kickassalternate.checkers;
+
+import hu.liptak.kickassalternate.CheckerException;
+import hu.liptak.kickassalternate.Hook;
 
 import java.io.File;
 import java.util.Collection;
-
-import com.ind.commithook.CheckerException;
-import com.ind.commithook.Hook;
 
 /**
  * Checker interface.

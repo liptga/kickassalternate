@@ -1,4 +1,12 @@
-package com.ind.commithook;
+package hu.liptak.kickassalternate;
+
+import hu.liptak.kickassalternate.checkers.Checker;
+import hu.liptak.kickassalternate.generated.Check;
+import hu.liptak.kickassalternate.generated.CommitHookConfig;
+import hu.liptak.kickassalternate.generated.Parameter;
+import hu.liptak.kickassalternate.generated.RegexpPattern;
+import hu.liptak.kickassalternate.generated.Check.Exclude;
+import hu.liptak.kickassalternate.generated.Check.Include;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -6,7 +14,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,10 +34,6 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil;
 import org.tmatesoft.svn.core.wc.admin.ISVNChangeEntryHandler;
 import org.tmatesoft.svn.core.wc.admin.SVNChangeEntry;
 import org.tmatesoft.svn.core.wc.admin.SVNLookClient;
-
-import com.ind.commithook.Check.Exclude;
-import com.ind.commithook.Check.Include;
-import com.ind.commithook.checkers.Checker;
 
 /**
  * Hook Framework to enable avoiding bad source code to be committed.<br/>
@@ -457,7 +460,6 @@ public class Hook
 			return files;
 		}
 
-		@Override
 		public void handleEntry(final SVNChangeEntry entry) throws SVNException
 		{
 			if (entry.getKind().equals(SVNNodeKind.FILE))

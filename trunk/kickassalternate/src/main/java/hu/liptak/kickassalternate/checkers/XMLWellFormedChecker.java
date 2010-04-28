@@ -1,4 +1,6 @@
-package com.ind.commithook.checkers;
+package hu.liptak.kickassalternate.checkers;
+
+import hu.liptak.kickassalternate.CheckerException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,11 +12,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.ind.commithook.CheckerException;
-
 public class XMLWellFormedChecker extends ParameterResolverCheckerHelper
 {
-	@Override
 	public Object process(Collection<File> listOfFilesToProcess, File tempDir)
 			throws CheckerException
 	{
