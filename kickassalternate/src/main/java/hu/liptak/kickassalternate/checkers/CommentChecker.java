@@ -1,11 +1,11 @@
-package com.ind.commithook.checkers;
+package hu.liptak.kickassalternate.checkers;
+
+import hu.liptak.kickassalternate.CheckerException;
 
 import java.io.File;
 import java.util.Collection;
 
 import org.tmatesoft.svn.core.SVNException;
-
-import com.ind.commithook.CheckerException;
 
 public class CommentChecker extends ParameterResolverCheckerHelper
 {
@@ -32,7 +32,6 @@ public class CommentChecker extends ParameterResolverCheckerHelper
 		this.pattern = pattern;
 	}
 
-	@Override
 	public Object process(final Collection<File> listOfFilesToProcess, final File tempDir) throws CheckerException
 	{
 		// TODO Auto-generated method stub

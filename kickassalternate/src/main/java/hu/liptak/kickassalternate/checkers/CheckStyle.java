@@ -1,4 +1,6 @@
-package com.ind.commithook.checkers;
+package hu.liptak.kickassalternate.checkers;
+
+import hu.liptak.kickassalternate.CheckerException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -6,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.ind.commithook.CheckerException;
 import com.puppycrawl.tools.checkstyle.ConfigurationLoader;
 import com.puppycrawl.tools.checkstyle.DefaultLogger;
 import com.puppycrawl.tools.checkstyle.PropertiesExpander;
@@ -26,7 +27,6 @@ public class CheckStyle extends ParameterResolverCheckerHelper
 		this.configFile = configFile;
 	}
 
-	@Override
 	public Object process(final Collection<File> listOfFilesToProcess, final File tempDir) throws CheckerException
 	{
 		try
