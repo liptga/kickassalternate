@@ -27,13 +27,17 @@ public class CheckStyle extends ParameterResolverCheckerHelper
 		this.configFile = configFile;
 	}
 
-	public Object process(final Collection<File> listOfFilesToProcess, final File tempDir) throws CheckerException
+	public Object process(final Collection<File> listOfFilesToProcess,
+			final File tempDir) throws CheckerException
 	{
 		try
 		{
-			final Configuration checkstyleConfig = ConfigurationLoader.loadConfiguration(configFile.getCanonicalPath(), new PropertiesExpander(System.getProperties()));
+			final Configuration checkstyleConfig = ConfigurationLoader
+					.loadConfiguration(configFile.getCanonicalPath(),
+							new PropertiesExpander(System.getProperties()));
 			final com.puppycrawl.tools.checkstyle.Checker checker = new com.puppycrawl.tools.checkstyle.Checker();
-			final ClassLoader moduleClassLoader = Checker.class.getClassLoader();
+			final ClassLoader moduleClassLoader = Checker.class
+					.getClassLoader();
 			checker.setModuleClassLoader(moduleClassLoader);
 			checker.configure(checkstyleConfig);
 			final ByteArrayOutputStream bos = new ByteArrayOutputStream();

@@ -18,14 +18,16 @@ public abstract class ParameterResolverCheckerHelper extends CheckerHelper
 {
 	protected String getMethodName(final String parameterName)
 	{
-		return "set" + parameterName.substring(0, 1).toUpperCase() + parameterName.substring(1);
+		return "set" + parameterName.substring(0, 1).toUpperCase()
+				+ parameterName.substring(1);
 	}
 
 	/**
 	 * Tries to resolve parameters to call setters of the checker class.
 	 */
 	@Override
-	public void addParameter(final String name, final String value) throws CheckerException
+	public void addParameter(final String name, final String value)
+			throws CheckerException
 	{
 		final Method[] allMethods = this.getClass().getMethods();
 		final String methodName = getMethodName(name);
@@ -40,7 +42,9 @@ public abstract class ParameterResolverCheckerHelper extends CheckerHelper
 		}
 
 		if (matchingMethods.size() == 0)
-			throw new CheckerException("No matching setter found in checker '" + this.getClass().getName() + "' for parameter '" + name + "'. Check config file for mistypes!");
+			throw new CheckerException("No matching setter found in checker '"
+					+ this.getClass().getName() + "' for parameter '" + name
+					+ "'. Check config file for mistypes!");
 
 		final StringWriter errorsOfSetters = new StringWriter();
 		final PrintWriter pw = new PrintWriter(errorsOfSetters);
@@ -50,35 +54,52 @@ public abstract class ParameterResolverCheckerHelper extends CheckerHelper
 			final Method setter = matchingMethods.get(parameterClass);
 			try
 			{
-				setter.invoke(this, new Object[] { renderParameter(value, parameterClass) });
+				setter.invoke(this, new Object[]
+				{ renderParameter(value, parameterClass) });
 				return;
 			}
 			catch (final Exception e)
 			{
-				//if it throws exception, we try additional matching setters. So nothing is to do here. We just print stacktrace to a writer. If all trial fails, we print stacktrace to
-				//standard error
-				pw.println("Setting parameter '" + name + "' with method '" + setter.toString() + "' failed with the following exception:");
+				// if it throws exception, we try additional matching setters.
+				// So nothing is to do here. We just print stacktrace to a
+				// writer. If all trial fails, we print stacktrace to
+				// standard error
+				pw.println("Setting parameter '" + name + "' with method '"
+						+ setter.toString()
+						+ "' failed with the following exception:");
 				e.printStackTrace(pw);
 			}
 			pw.flush();
 			pw.close();
 		}
-		throw new CheckerException("Failed to call setter in checker '" + this.getClass().getName() + "' for parameter '" + name + "'. Check value of parameter in config file!\r\nChecker errors:\r\n" + errorsOfSetters.toString());
+		throw new CheckerException(
+				"Failed to call setter in checker '"
+						+ this.getClass().getName()
+						+ "' for parameter '"
+						+ name
+						+ "'. Check value of parameter in config file!\r\nChecker errors:\r\n"
+						+ errorsOfSetters.toString());
 	}
 
-	private Object renderParameter(final String value, final Class desiredParameter) throws SVNException, IOException
+	private Object renderParameter(final String value,
+			final Class desiredParameter) throws SVNException, IOException
 	{
 		if (desiredParameter.equals(String.class))
 			return value;
-		if (desiredParameter.equals(Integer.class) || desiredParameter.equals(Integer.TYPE))
+		if (desiredParameter.equals(Integer.class)
+				|| desiredParameter.equals(Integer.TYPE))
 			return new Integer(value);
-		if (desiredParameter.equals(Short.class) || desiredParameter.equals(Short.TYPE))
+		if (desiredParameter.equals(Short.class)
+				|| desiredParameter.equals(Short.TYPE))
 			return new Short(value);
-		if (desiredParameter.equals(Long.class) || desiredParameter.equals(Long.TYPE))
+		if (desiredParameter.equals(Long.class)
+				|| desiredParameter.equals(Long.TYPE))
 			return new Long(value);
-		if (desiredParameter.equals(Float.class) || desiredParameter.equals(Float.TYPE))
+		if (desiredParameter.equals(Float.class)
+				|| desiredParameter.equals(Float.TYPE))
 			return new Float(value);
-		if (desiredParameter.equals(Double.class) || desiredParameter.equals(Double.TYPE))
+		if (desiredParameter.equals(Double.class)
+				|| desiredParameter.equals(Double.TYPE))
 			return new Double(value);
 		if (desiredParameter.equals(BigInteger.class))
 			return new BigInteger(value);
@@ -88,6 +109,8 @@ public abstract class ParameterResolverCheckerHelper extends CheckerHelper
 		{
 			return hookInstance.getFileFromFileSystemOrRepository(value);
 		}
-		throw new UnsupportedOperationException(desiredParameter.getClass().getName() + " is not implemented yet. Contribute, man! :)");
+		throw new UnsupportedOperationException(desiredParameter.getClass()
+				.getName()
+				+ " is not implemented yet. Contribute, man! :)");
 	}
 }

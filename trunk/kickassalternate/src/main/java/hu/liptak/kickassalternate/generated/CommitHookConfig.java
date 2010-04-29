@@ -5,7 +5,6 @@
 // Generated on: 2010.04.22 at 10:41:27 DU CEST 
 //
 
-
 package hu.liptak.kickassalternate.generated;
 
 import java.util.ArrayList;
@@ -16,11 +15,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType>
@@ -37,42 +38,44 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "check"
-})
+@XmlType(name = "", propOrder =
+{ "check" })
 @XmlRootElement(name = "CommitHookConfig")
-public class CommitHookConfig {
+public class CommitHookConfig
+{
 
-    @XmlElement(name = "Check")
-    protected List<Check> check;
+	@XmlElement(name = "Check")
+	protected List<Check> check;
 
-    /**
-     * Gets the value of the check property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the check property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getCheck().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Check }
-     * 
-     * 
-     */
-    public List<Check> getCheck() {
-        if (check == null) {
-            check = new ArrayList<Check>();
-        }
-        return this.check;
-    }
+	/**
+	 * Gets the value of the check property.
+	 * 
+	 * <p>
+	 * This accessor method returns a reference to the live list, not a
+	 * snapshot. Therefore any modification you make to the returned list will
+	 * be present inside the JAXB object. This is why there is not a
+	 * <CODE>set</CODE> method for the check property.
+	 * 
+	 * <p>
+	 * For example, to add a new item, do as follows:
+	 * 
+	 * <pre>
+	 * getCheck().add(newItem);
+	 * </pre>
+	 * 
+	 * 
+	 * <p>
+	 * Objects of the following type(s) are allowed in the list {@link Check }
+	 * 
+	 * 
+	 */
+	public List<Check> getCheck()
+	{
+		if (check == null)
+		{
+			check = new ArrayList<Check>();
+		}
+		return this.check;
+	}
 
 }

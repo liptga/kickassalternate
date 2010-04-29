@@ -7,3 +7,4 @@
 
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://code.google.com/p/kickassalternate", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package hu.liptak.kickassalternate.generated;
+
