@@ -1,0 +1,7 @@
+<suite name="Suite" parallel="false">
+  <test name="Test">
+    <classes>
+      <class name="hu.liptak.kickassalternate.HookTest"/>
+    </classes>
+  </test>
+</suite>

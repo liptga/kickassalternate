@@ -2,8 +2,9 @@ package hu.liptak.kickassalternate;
 
 /**
  * To be used by checkers. Checkers should throw this exception.
+ * 
  * @author liptak
- *
+ * 
  */
 public class CheckerException extends Exception
 {

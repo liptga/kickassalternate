@@ -22,45 +22,48 @@ public class XMLWellFormedChecker extends ParameterResolverCheckerHelper
 		try
 		{
 			reader = XMLReaderFactory.createXMLReader();
-		} 
+		}
 		catch (SAXException e)
 		{
-			throw new CheckerException( "Error while instantiating XMLReader", e );
+			throw new CheckerException("Error while instantiating XMLReader", e);
 		}
 		for (File file : listOfFilesToProcess)
 		{
 			try
 			{
-				reader.parse(new InputSource( new FileInputStream( file ) ) );
-			} 
+				reader.parse(new InputSource(new FileInputStream(file)));
+			}
 			catch (Exception e)
 			{
-				result.append( "Error while parsing " );
-				//making path to repository relative path
+				result.append("Error while parsing ");
+				// making path to repository relative path
 				try
 				{
-					result.append( file.getCanonicalPath().substring( tempDir.getCanonicalPath().length()).replace('\\', '/'));
-				} 
+					result.append(file.getCanonicalPath().substring(
+							tempDir.getCanonicalPath().length()).replace('\\',
+							'/'));
+				}
 				catch (IOException e1)
 				{
-					//do not exactly know what to do here.
+					// do not exactly know what to do here.
 					e1.printStackTrace();
 				}
-				result.append( ". Error message: " );
-				result.append( "\r\n" );
+				result.append(". Error message: ");
+				result.append("\r\n");
 				Throwable cause = null;
 				do
 				{
-					if ( cause == null )
+					if (cause == null)
 						cause = e;
 					else
 						cause = cause.getCause();
-					result.append( e.getLocalizedMessage() );
-					result.append( "\r\n" );
-				} while( e.getCause() != null );
+					result.append(e.getLocalizedMessage());
+					result.append("\r\n");
+				}
+				while (e.getCause() != null);
 			}
 		}
-		if ( result.length() > 0 )
+		if (result.length() > 0)
 			return result.toString();
 		return null;
 	}

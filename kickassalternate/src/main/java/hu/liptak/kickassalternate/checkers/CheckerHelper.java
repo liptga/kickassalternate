@@ -16,7 +16,8 @@ public abstract class CheckerHelper implements Checker
 	protected Map<String, String> parameters = new HashMap<String, String>();
 	protected Hook hookInstance;
 
-	public void addParameter(final String name, final String value) throws CheckerException
+	public void addParameter(final String name, final String value)
+			throws CheckerException
 	{
 		parameters.put(name, value);
 	}
